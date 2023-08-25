@@ -78,5 +78,17 @@ public interface MemberRepository extends JpaRepository<Member, Long>, MemberRep
     @Lock(LockModeType.PESSIMISTIC_WRITE)   // select ~for update
     List<Member> findLockByUsername(String username);
 
+    <T> List<T> findProjectionsByUsername(@Param("username") String username, Class<T> type);
 
+    // Native Query (가급적 사용하지 않는게좋다, 정말 어쩔수 없을때 사용// 영한좌는 99퍼는 안쓴다고함)
+    @Query(value = "select * from member where username = ?", nativeQuery = true)
+    Member findByNativeQuery(String username);
+
+    // Native Query + Projection(한계가 있지만 위에꺼보단 나음) 둘다 정적쿼리에만 가능함,
+    // 그리고 이건 최근에 들어온기술임
+    @Query(value = "select m.member_id as id, m.username, t.name as teamName " +
+            "from member m left join team t",
+            countQuery = "select count(*) from member",
+            nativeQuery = true)
+    Page<MemberProjection> findByNativeProjection(Pageable pageable);
 }
